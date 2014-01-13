@@ -1,6 +1,6 @@
 pyPDB
 =====
-````
+```python
 from pyPDB import *
 
 # load pdb
@@ -51,4 +51,4 @@ p.reduce()
 # ...which can be iterated over:
 for atom in p.reduce():
     print '{}{}'.format(atom.element, atom.id)
-````
+```
