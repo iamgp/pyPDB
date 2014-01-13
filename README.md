@@ -70,6 +70,12 @@ p.writePDB()
 
 # the selection can be removed using
 p.removeSelection()
+
+# translate the coordinates (or selection)
+p.translateCoordinates([1,1,1])
+for atom in p.molecule.atoms:
+    a = p.molecule.atoms[atom]
+    print "[{0:g}, {1:g}, {2:g}]".format(a.x, a.y, a.z)
 ```
 
 License

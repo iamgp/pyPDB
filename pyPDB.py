@@ -392,10 +392,35 @@ class pyPDB(object):
         return "%s%5i %-4s%c%3s %c%4i%c   %8.3f%8.3f%8.3f%s" % args
 
 
+    def translateCoordinates(self, translateVector):
+        if not self.selectedAtoms:
+            atoms_list = self.molecule.atoms
+        else:
+            atoms_list = []
+            for atom in self.selectedAtoms:
+                atoms_list.append(atom.id)
+
+        for atom in atoms_list:
+            a = self.molecule.atoms[atom]
+            a1 = numpy.array([a.x, a.y, a.z])
+            a2 = numpy.array(translateVector)
+            s = numpy.add(a1,a2)
+            self.molecule.atoms[atom].x = s[0]
+            self.molecule.atoms[atom].y = s[1]
+            self.molecule.atoms[atom].z = s[2]
+
+        return self
+
 if __name__ == '__main__':
-    pass
+
 # load pdb
     p = pyPDB('pdbs/gly.pdb')
+
+# translate the coordinates (or selection)
+#p.translateCoordinates([10,5,1])
+#for atom in p.molecule.atoms:
+#    a = p.molecule.atoms[atom]
+#    print "[{0:g}, {1:g}, {2:g}]".format(a.x, a.y, a.z)
 
 # select one atom
 #   p.selectAtom(4)
