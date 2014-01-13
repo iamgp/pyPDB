@@ -4,8 +4,6 @@ import os
 import sys
 import numpy
 import matplotlib.pyplot as plt
-from operator import itemgetter
-
 
 class Atom(object):
 
