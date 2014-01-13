@@ -52,6 +52,9 @@ for x in atomsWithinDistance[0]:
     	p.molecule.atoms[10].element, 10, atomsWithinDistance[1][i])
     i += 1
 
+# or even make an amber mask:
+print p.toAmberMask('atoms')
+
 # output a description of 'p' as json
 print p.toJSON()
 
@@ -69,6 +72,6 @@ License
 
 All necessary information can be found in LICENSE (GPL v3). In brief this means:
 
-You may copy, distribute and modify the software as long as you track changes/dates of in source files and keep modifications under GPL. You can distribute your application using a GPL library commercially, but you must also provide the source code. 
+You may copy, distribute and modify the software as long as you track changes/dates of in source files and keep modifications under GPL. You can distribute your application using a GPL library commercially, but you must also provide the source code.
 
 (obtained from http://www.tldrlegal.com/license/gnu-general-public-license-v3-(gpl-3))
