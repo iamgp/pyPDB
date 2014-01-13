@@ -55,24 +55,3 @@ class Molecule(object):
 
     def bond_total(self):
         return len(self.bonds)
-
-
-if __name__ == '__main__':
-    m = Molecule(1, "Water")
-    m.atoms[1] = Atom(1, "O", coords=[1,2,3])
-    m.atoms[2] = Atom(1, "H", coords=[4,2,3])
-    m.atoms[3] = Atom(1, "H", coords=[1,5,7])
-
-    m.bonds.append(Bond(1,2))
-    m.bonds.append(Bond(1,3))
-
-    print "Molecule name is: %s" % m.name
-
-    for key in m.atoms.keys():
-        a = m.atoms[key]
-        print "Atom #%s is %s    \t x: %.3f \t y: %.3f \t z: %.3f" % (a.id, a.element, a.coords[0], a.coords[1], a.coords[2])
-
-    for bond in m.bonds:
-        print "bond between atom %s and atom %s" % (bond.atom1, bond.atom2)
-
-
