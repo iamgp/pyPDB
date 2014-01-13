@@ -311,7 +311,7 @@ class pyPDB(object):
                 else:
                     comma = ','
 
-                ret += '{}{}'.format(residue, comma)
+                ret += '{0}{1}'.format(residue, comma)
                 i = i + 1
             return ret
 
@@ -322,12 +322,11 @@ class pyPDB(object):
                 else:
                     comma = ','
 
-                ret += '{}{}'.format(atom.id, comma)
+                ret += '{0}{1}'.format(atom.id, comma)
                 i = i + 1
             return ret
 
 if __name__ == '__main__':
-    p = pyPDB('pdbs/1OXWA.pdb')
-    p.atomsWithinDistanceOfAtom(10, 5)
-
-    print p.toAmberMask('atoms')
+    p = pyPDB('pdbs/gly.pdb')
+    if p:
+        print 'loaded'
