@@ -6,13 +6,14 @@ import numpy
 import matplotlib.pyplot as plt
 from operator import itemgetter
 
+
 class Atom(object):
 
     """Atom Class"""
 
     def __init__(self, rectype="ATOM", id=-1, name="", altLoc=" ", resName=" ",
-        chainID=-1, resSeq=-1, iCode=" ",
-        x=0, y=0, z=0, occupancy=" ", tempFactor=" ", charge=" "):
+                 chainID=-1, resSeq=-1, iCode=" ",
+                 x=0, y=0, z=0, occupancy=" ", tempFactor=" ", charge=" "):
         self.rectype = rectype
         self.id = id
         self.name = name
@@ -27,8 +28,6 @@ class Atom(object):
         self.occupancy = occupancy
         self.tempFactor = tempFactor
         self.charge = charge
-
-
 
 
 class Bond(object):
@@ -129,6 +128,7 @@ class pyPDB(object):
         chain_no = 1
         for line in f.splitlines():
             l += 1
+
             if (line[0:4] == 'ATOM' or line[0:6] == 'HETATM'):
                 # get atom information
                 atom = self._readAtom(line)
@@ -172,7 +172,7 @@ class pyPDB(object):
 
     def _readAtom(self, line):
         a = Atom()
-        a.rectype = line[0:6] # ATOM or HETATM
+        a.rectype = line[0:6]  # ATOM or HETATM
         iid = line[7:11].strip()
         a.id = int(iid)
         a.name = line[12:14].strip()
@@ -361,11 +361,10 @@ class pyPDB(object):
             a = self.molecule.atoms[atom]
             print self._get_atom_line(a)
 
-
     def _get_atom_line(self, a):
 
         # COLUMNS        DATA  TYPE    FIELD        DEFINITION
-        # -------------------------------------------------------------------------------------
+        # ---------------------------------------------------------------------
         #  0 -  5        Record name   "ATOM  "
         #  6 - 10        Integer       serial       Atom  serial number.
         # 12 - 15        Atom          name         Atom name.
@@ -388,73 +387,66 @@ class pyPDB(object):
         # ATOM      1  N   LEU A  25      80.669  55.349  53.905  1.00 39.12           N
         # ATOM      1  N   LEU A   2      80.660  55.340  53.900  1.0
 
-        args=(a.rectype, a.id, a.name, a.altLoc, a.resName,
-            a.chainID, a.resSeq, a.iCode,
-            a.x, a.y, a.z, a.occupancy)
+        args = (a.rectype, a.id, a.name, a.altLoc, a.resName,
+                a.chainID, a.resSeq, a.iCode,
+                a.x, a.y, a.z, a.occupancy)
 
         return "%s%5i %-4s%c%3s %c%4i%c   %8.3f%8.3f%8.3f%s" % args
 
 
-
-
-
-
-
-
-
 if __name__ == '__main__':
-
-    # load pdb
+    pass
+# load pdb
     p = pyPDB('pdbs/gly.pdb')
 
-    # select one atom
-    p.selectAtom(4)
+# select one atom
+#   p.selectAtom(4)
 
-    # select multiple atoms individually (this continues after the previous one)
-    p.selectAtom(5).selectAtom(6)
+# select multiple atoms individually (this continues after the previous one)
+#   p.selectAtom(5).selectAtom(6)
 
-    # or select multiple atoms all in one go
-    p.selectAtoms([4, 5, 6])
+# or select multiple atoms all in one go
+#   p.selectAtoms([4, 5, 6])
 
-    # the 'p' pyPDB instance now has a selectedAtoms attribute that is iterable:
-    for atom in p.selectedAtoms:
-        print '{}{}'.format(atom.name, atom.id)
+# the 'p' pyPDB instance now has a selectedAtoms attribute that is iterable:
+#   for atom in p.selectedAtoms:
+#       print '{}{}'.format(atom.name, atom.id)
 
-    # calculate a distance map
-    print p.distanceMap()
+# calculate a distance map
+#   print p.distanceMap()
 
-    # and also plot it
-    p.plotDistanceMap(save=False, close=True)
+# and also plot it
+#   p.plotDistanceMap(save=False, close=True)
 
-    # calculate the distance between two atoms
-    print p.distanceBetweenAtoms(8, 9)
+# calculate the distance between two atoms
+#   print p.distanceBetweenAtoms(8, 9)
 
-    # calculate atoms within a given distance of another atom
-    print p.atomsWithinDistanceOfAtom(10, 3)
+# calculate atoms within a given distance of another atom
+#   print p.atomsWithinDistanceOfAtom(10, 3)
 
-    # you can iterate over something like the above such as:
-    atomsWithinDistance = p.atomsWithinDistanceOfAtom(10, 3)
-    i = 0
-    for x in atomsWithinDistance[0]:
-        print 'Atom {}{} is within {} of {}{}: {}'.format(x.name, x.id, 3,
-            p.molecule.atoms[10].name, 10, atomsWithinDistance[1][i])
-        i += 1
+# you can iterate over something like the above such as:
+#   atomsWithinDistance = p.atomsWithinDistanceOfAtom(10, 3)
+#   i = 0
+#   for x in atomsWithinDistance[0]:
+#       print 'Atom {}{} is within {} of {}{}: {}'.format(x.name, x.id, 3,
+#           p.molecule.atoms[10].name, 10, atomsWithinDistance[1][i])
+#       i += 1
 
-    # or even make an amber mask:
-    print p.toAmberMask('atoms')
+# or even make an amber mask:
+#   print p.toAmberMask('atoms')
 
-    # output a description of 'p' as json
-    print p.toJSON()
+# output a description of 'p' as json
+#   print p.toJSON()
 
-    # reduce a pdb:
-    p.reduce()
+# reduce a pdb:
+#   p.reduce()
 
-    # ...which can be iterated over:
-    for atom in p.reduce():
-        print '{}{}'.format(atom.name, atom.id)
+# ...which can be iterated over:
+#   for atom in p.reduce():
+#       print '{}{}'.format(atom.name, atom.id)
 
-    # the selection (or all atoms if no selection) can be written to a pdb file
-    p.writePDB()
+# the selection (or all atoms if no selection) can be written to a pdb file
+#   p.writePDB()
 
-    # the selection can be removed using
-    p.removeSelection()
+# the selection can be removed using
+#   p.removeSelection()
