@@ -26,9 +26,19 @@ class Residue(object):
         else:
             self.atoms = atoms
 
+class Chain(object):
+    """Chain Class"""
+    def __init__(self, id=-1, name="", residues=None):
+        self.id = id
+        self.name = name
+        if residues == None:
+            self.residues = []
+        else:
+            self.residues = residues
+
 class Molecule(object):
     """Molecule Class"""
-    def __init__(self, id=0, name="", atoms=None, bonds=None, residues=None):
+    def __init__(self, id=0, name="", atoms=None, bonds=None, residues=None, chains=None):
         self.id = id
         self.name = name
 
@@ -47,6 +57,11 @@ class Molecule(object):
         else:
             self.residues = residues
 
+        if chains == None:
+            self.chains = []
+        else:
+            self.chains = chains
+
     def residue_total(self):
         return len(self.residues)
 
@@ -55,3 +70,6 @@ class Molecule(object):
 
     def bond_total(self):
         return len(self.bonds)
+
+    def chain_total(self):
+        return len(self.chains)

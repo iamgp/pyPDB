@@ -21,6 +21,8 @@ class pyPDB(object):
         f = open(self.filename, 'r').read().replace('\r\n', '\n')
 
         l = 0
+        temp_chain = []
+        chain_no = 1
         for line in f.splitlines():
             l += 1
             if (line[0:4] == 'ATOM' or line[0:6] == 'HETATM'):
@@ -35,6 +37,9 @@ class pyPDB(object):
                     r.name = atom.residue_name
                     r.atoms = [atom.id]
                     m.residues[r.id] = r
+                    chain_name = line[21:22]
+                    temp_chain.append(r)
+
                 else:
                     # new atom to residue
                     m.residues[atom.residue_id].atoms.append(atom)
@@ -44,8 +49,20 @@ class pyPDB(object):
                 for bond in bonds_in_line:
                     m.bonds.append(bond)
 
-        #if m.bond_total() == 0:
-            #print 'Warning: No CONECT info, so no bond analysis.'
+            if 'TER' in line:
+                c = Chain()
+                c.name = chain_name
+                c.residues = temp_chain
+                c.id = chain_no
+                m.chains.append(c)
+                temp_chain = []
+                chain_no = chain_no + 1
+
+        if m.bond_total() == 0:
+            print 'Warning: No CONECT info, so no bond analysis.'
+
+        if 'TER' not in f and m.chain_total() == 0:
+            print 'Warning: No TER statement, so no chains are built.'
 
         self.molecule = m
 
