@@ -1,29 +1,39 @@
 #!/usr/bin/python
 
-import os, sys
+import os
+import sys
 import numpy
 import matplotlib.pyplot as plt
 
+
 class Atom(object):
+
     """Atom Class"""
+
     def __init__(self, id=-1, element="", coords=None, residue_id=-1, residue_name=""):
         self.id = id
         self.element = element
         self.residue_id = residue_id
         self.residue_name = residue_name
         if coords == None:
-            self.coords = [0,0,0]
+            self.coords = [0, 0, 0]
         else:
             self.coords = coords
 
+
 class Bond(object):
+
     """Bond Class"""
+
     def __init__(self, atom1=0, atom2=0):
         self.atom1 = atom1
         self.atom2 = atom2
 
+
 class Residue(object):
+
     """Residue Class"""
+
     def __init__(self, id=-1, name="", atoms=None):
         self.id = id
         self.name = name
@@ -32,8 +42,11 @@ class Residue(object):
         else:
             self.atoms = atoms
 
+
 class Chain(object):
+
     """Chain Class"""
+
     def __init__(self, id=-1, name="", residues=None):
         self.id = id
         self.name = name
@@ -42,8 +55,11 @@ class Chain(object):
         else:
             self.residues = residues
 
+
 class Molecule(object):
+
     """Molecule Class"""
+
     def __init__(self, id=0, name="", atoms=None, bonds=None, residues=None, chains=None):
         self.id = id
         self.name = name
@@ -80,8 +96,11 @@ class Molecule(object):
     def chain_total(self):
         return len(self.chains)
 
+
 class pyPDB(object):
+
     """PDB Class"""
+
     def __init__(self, filename):
         self.filename = filename
         self.molecule = None
@@ -147,9 +166,9 @@ class pyPDB(object):
         a.element = line[12:14].strip().upper()
         a.residue_name = line[17:21].strip().upper()
         a.residue_id = int(line[22:27])
-        a.coords[0] = float(line[31:38]) # x
-        a.coords[1] = float(line[39:46]) # y
-        a.coords[2] = float(line[47:54]) # z
+        a.coords[0] = float(line[31:38])  # x
+        a.coords[1] = float(line[39:46])  # y
+        a.coords[2] = float(line[47:54])  # z
         return a
 
     def _readBonds(self, line):
@@ -171,7 +190,7 @@ class pyPDB(object):
 
         a = numpy.array((atom1.coords[0], atom1.coords[1], atom1.coords[2]))
         b = numpy.array((atom2.coords[0], atom2.coords[1], atom2.coords[2]))
-        dist = numpy.linalg.norm(a-b)
+        dist = numpy.linalg.norm(a - b)
 
         return int(dist * 100) / 100.00
 
@@ -181,12 +200,15 @@ class pyPDB(object):
 
         atomsWithinDistance = []
         atomDistances = []
+        self.selectedAtoms = []
         for key in self.molecule.atoms:
             if self.distanceBetweenAtoms(atomid, self.molecule.atoms[key].id) <= distance:
                 if self.molecule.atoms[key].id != atomid:
                     atomsWithinDistance.append(self.molecule.atoms[key])
-                    d = self.distanceBetweenAtoms(atomid, self.molecule.atoms[key].id)
+                    d = self.distanceBetweenAtoms(
+                        atomid, self.molecule.atoms[key].id)
                     atomDistances.append(d)
+                    self.selectedAtoms.append(self.molecule.atoms[key])
 
         return (atomsWithinDistance, atomDistances)
 
@@ -207,8 +229,8 @@ class pyPDB(object):
 
             for a2 in self.molecule.atoms:
                 atom2 = self.molecule.atoms[a2]
-                temp_distances.append(self.distanceBetweenAtoms(atom1.id, atom2.id))
-
+                temp_distances.append(
+                    self.distanceBetweenAtoms(atom1.id, atom2.id))
 
             dist_map.append(temp_distances)
 
@@ -219,11 +241,12 @@ class pyPDB(object):
         matrix = numpy.matrix(m)
 
         fig = plt.figure()
-        ax = fig.add_subplot(1,1,1)
+        ax = fig.add_subplot(1, 1, 1)
         ax.set_aspect('equal')
         plt.title('Distance Map')
         extent = self.molecule.atom_total() + 0.5
-        plt.imshow(matrix, interpolation='nearest', cmap=plt.cm.hot, extent=(0.5,extent,0.5,extent))
+        plt.imshow(matrix, interpolation='nearest', cmap=plt.cm.hot,
+                   extent=(0.5, extent, 0.5, extent))
         plt.colorbar()
 
         if save == True:
@@ -234,7 +257,7 @@ class pyPDB(object):
         else:
             plt.show()
 
-    def selectAtom(self,atomid):
+    def selectAtom(self, atomid):
         atom = self.molecule.atoms[atomid]
 
         alreadySelected = False
@@ -245,8 +268,7 @@ class pyPDB(object):
         if alreadySelected == False:
             self.selectedAtoms.append(atom)
 
-        return self # enables chaining
-
+        return self  # enables chaining
 
     def selectAtoms(self, atomids=[]):
         for atom in atomids:
@@ -265,9 +287,47 @@ class pyPDB(object):
 
         return self.reduced
 
+    def listResiduesFromAtoms(self, atoms):
+        residues = []
+        for atom in atoms:
+            if atom not in residues:
+                residues.append(self.molecule.residues[atom.residue_id])
+
+        temp_residue_list = []
+        for residue in residues:
+            if residue.id not in temp_residue_list:
+                temp_residue_list.append(residue.id)
+
+        return temp_residue_list
+
+    def toAmberMask(self, key='residues'):
+        ret = ''
+        i = 1
+
+        if(key == 'residues'):
+            for residue in self.listResiduesFromAtoms(self.selectedAtoms):
+                if i == len(self.listResiduesFromAtoms(self.selectedAtoms)):
+                    comma = ''
+                else:
+                    comma = ','
+
+                ret += '{}{}'.format(residue, comma)
+                i = i + 1
+            return ret
+
+        elif(key == 'atoms'):
+            for atom in self.selectedAtoms:
+                if i == len(self.selectedAtoms):
+                    comma = ''
+                else:
+                    comma = ','
+
+                ret += '{}{}'.format(atom.id, comma)
+                i = i + 1
+            return ret
+
 if __name__ == '__main__':
-    p = pyPDB('pdbs/gly.pdb')
-    if p:
-        print 'loaded'
+    p = pyPDB('pdbs/1OXWA.pdb')
+    p.atomsWithinDistanceOfAtom(10, 5)
 
-
+    print p.toAmberMask('atoms')
