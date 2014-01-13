@@ -30,7 +30,7 @@ p.selectAtoms([4, 5, 6])
 
 # the 'p' pyPDB instance now has a selectedAtoms attribute that is iterable:
 for atom in p.selectedAtoms:
-    print '{}{}'.format(atom.element, atom.id)
+    print '{}{}'.format(atom.name, atom.id)
 
 # calculate a distance map
 print p.distanceMap()
@@ -48,8 +48,8 @@ print p.atomsWithinDistanceOfAtom(10, 3)
 atomsWithinDistance = p.atomsWithinDistanceOfAtom(10, 3)
 i = 0
 for x in atomsWithinDistance[0]:
-    print 'Atom {}{} is within {} of {}{}: {}'.format(x.element, x.id, 3,
-    	p.molecule.atoms[10].element, 10, atomsWithinDistance[1][i])
+    print 'Atom {}{} is within {} of {}{}: {}'.format(x.name, x.id, 3,
+        p.molecule.atoms[10].name, 10, atomsWithinDistance[1][i])
     i += 1
 
 # or even make an amber mask:
@@ -63,8 +63,13 @@ p.reduce()
 
 # ...which can be iterated over:
 for atom in p.reduce():
-    print '{}{}'.format(atom.element, atom.id)
+    print '{}{}'.format(atom.name, atom.id)
 
+# the selection (or all atoms if no selection) can be written to a pdb file
+p.writePDB()
+
+# the selection can be removed using
+p.removeSelection()
 ```
 
 License
