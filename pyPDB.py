@@ -4,21 +4,31 @@ import os
 import sys
 import numpy
 import matplotlib.pyplot as plt
-
+from operator import itemgetter
 
 class Atom(object):
 
     """Atom Class"""
 
-    def __init__(self, id=-1, element="", coords=None, residue_id=-1, residue_name=""):
+    def __init__(self, rectype="ATOM", id=-1, name="", altLoc=" ", resName=" ",
+        chainID=-1, resSeq=-1, iCode=" ",
+        x=0, y=0, z=0, occupancy=" ", tempFactor=" ", charge=" "):
+        self.rectype = rectype
         self.id = id
-        self.element = element
-        self.residue_id = residue_id
-        self.residue_name = residue_name
-        if coords == None:
-            self.coords = [0, 0, 0]
-        else:
-            self.coords = coords
+        self.name = name
+        self.altLoc = altLoc
+        self.resName = resName
+        self.chainID = chainID
+        self.resSeq = resSeq
+        self.iCode = iCode
+        self.x = x
+        self.y = y
+        self.z = z
+        self.occupancy = occupancy
+        self.tempFactor = tempFactor
+        self.charge = charge
+
+
 
 
 class Bond(object):
@@ -124,11 +134,11 @@ class pyPDB(object):
                 atom = self._readAtom(line)
                 # add atom to molecule atoms
                 m.atoms[atom.id] = atom
-                if atom.residue_id not in m.residues.keys():
+                if atom.resSeq not in m.residues.keys():
                     # new residue
                     r = Residue()
-                    r.id = atom.residue_id
-                    r.name = atom.residue_name
+                    r.id = atom.resSeq
+                    r.name = atom.resName
                     r.atoms = [atom.id]
                     m.residues[r.id] = r
                     chain_name = line[21:22]
@@ -136,7 +146,7 @@ class pyPDB(object):
 
                 else:
                     # new atom to residue
-                    m.residues[atom.residue_id].atoms.append(atom)
+                    m.residues[atom.resSeq].atoms.append(atom)
 
             if line[0:6] == 'CONECT':
                 bonds_in_line = self._readBonds(line)
@@ -155,20 +165,28 @@ class pyPDB(object):
         if m.bond_total() == 0:
             print 'Warning: No CONECT info, so no bond analysis.'
 
-        if 'TER' not in f and m.chain_total() == 0:
+        if 'TER' not in f:
             print 'Warning: No TER statement, so no chains are built.'
 
         self.molecule = m
 
     def _readAtom(self, line):
         a = Atom()
-        a.id = int(line[6:11])
-        a.element = line[12:14].strip().upper()
-        a.residue_name = line[17:21].strip().upper()
-        a.residue_id = int(line[22:27])
-        a.coords[0] = float(line[31:38])  # x
-        a.coords[1] = float(line[39:46])  # y
-        a.coords[2] = float(line[47:54])  # z
+        a.rectype = line[0:6] # ATOM or HETATM
+        iid = line[7:11].strip()
+        a.id = int(iid)
+        a.name = line[12:14].strip()
+        a.altLoc = line[16]
+        a.resName = line[17:20]
+        a.chainID = line[21]
+        a.resSeq = int(line[22:26])
+        a.iCode = line[26]
+        a.x = float(line[30:37])
+        a.y = float(line[38:45])
+        a.z = float(line[46:53])
+        a.occupancy = line[54:59]
+        a.tempFactor = line[60:65]
+        a.charge = line[78:89]
         return a
 
     def _readBonds(self, line):
@@ -188,8 +206,8 @@ class pyPDB(object):
         atom1 = self.molecule.atoms[atomid1]
         atom2 = self.molecule.atoms[atomid2]
 
-        a = numpy.array((atom1.coords[0], atom1.coords[1], atom1.coords[2]))
-        b = numpy.array((atom2.coords[0], atom2.coords[1], atom2.coords[2]))
+        a = numpy.array((atom1.x, atom1.y, atom1.z))
+        b = numpy.array((atom2.x, atom2.y, atom2.z))
         dist = numpy.linalg.norm(a - b)
 
         return int(dist * 100) / 100.00
@@ -282,7 +300,7 @@ class pyPDB(object):
 
     def reduce(self):
         for atom in self.molecule.atoms:
-            if 'H' not in self.molecule.atoms[atom].element:
+            if 'H' not in self.molecule.atoms[atom].name:
                 self.reduced.append(self.molecule.atoms[atom])
 
         return self.reduced
@@ -326,7 +344,117 @@ class pyPDB(object):
                 i = i + 1
             return ret
 
+    def removeSelection(self):
+        self.selectedAtoms = []
+        return self
+
+    def writePDB(self):
+
+        if not self.selectedAtoms:
+            atomsToWrite = self.molecule.atoms
+        else:
+            atomsToWrite = []
+            for atom in self.selectedAtoms:
+                atomsToWrite.append(atom.id)
+
+        for atom in sorted(atomsToWrite, key=lambda k: k):
+            a = self.molecule.atoms[atom]
+            print self._get_atom_line(a)
+
+
+    def _get_atom_line(self, a):
+
+        # COLUMNS        DATA  TYPE    FIELD        DEFINITION
+        # -------------------------------------------------------------------------------------
+        #  0 -  5        Record name   "ATOM  "
+        #  6 - 10        Integer       serial       Atom  serial number.
+        # 12 - 15        Atom          name         Atom name.
+        # 16             Character     altLoc       Alternate location indicator.
+        # 17 - 19        Residue name  resName      Residue name.
+        # 21             Character     chainID      Chain identifier.
+        # 22 - 25        Integer       resSeq       Residue sequence number.
+        # 26             AChar         iCode        Code for insertion of residues.
+        # 30 - 37        Real(8.3)     x            Orthogonal coordinates for X in Angstroms.
+        # 38 - 45        Real(8.3)     y            Orthogonal coordinates for Y in Angstroms.
+        # 46 - 53        Real(8.3)     z            Orthogonal coordinates for Z in Angstroms.
+        # 54 - 59        Real(6.2)     occupancy    Occupancy.
+        # 60 - 65        Real(6.2)     tempFactor   Temperature  factor.
+        # 76 - 77        LString(2)    element      Element symbol, right-justified.
+        # 78 - 89        LString(2)    charge       Charge  on the atom.
+
+        #          1         2         3         4         5         6         7         8
+        # 12345678901234567890123456789012345678901234567890123456789012345678901234567890
+        # MODEL        1
+        # ATOM      1  N   LEU A  25      80.669  55.349  53.905  1.00 39.12           N
+        # ATOM      1  N   LEU A   2      80.660  55.340  53.900  1.0
+
+        args=(a.rectype, a.id, a.name, a.altLoc, a.resName,
+            a.chainID, a.resSeq, a.iCode,
+            a.x, a.y, a.z, a.occupancy)
+
+        return "%s%5i %-4s%c%3s %c%4i%c   %8.3f%8.3f%8.3f%s" % args
+
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
+
+    # load pdb
     p = pyPDB('pdbs/gly.pdb')
-    if p:
-        print 'loaded'
+
+    # select one atom
+    p.selectAtom(4)
+
+    # select multiple atoms individually (this continues after the previous one)
+    p.selectAtom(5).selectAtom(6)
+
+    # or select multiple atoms all in one go
+    p.selectAtoms([4, 5, 6])
+
+    # the 'p' pyPDB instance now has a selectedAtoms attribute that is iterable:
+    for atom in p.selectedAtoms:
+        print '{}{}'.format(atom.name, atom.id)
+
+    # calculate a distance map
+    print p.distanceMap()
+
+    # and also plot it
+    p.plotDistanceMap(save=False, close=True)
+
+    # calculate the distance between two atoms
+    print p.distanceBetweenAtoms(8, 9)
+
+    # calculate atoms within a given distance of another atom
+    print p.atomsWithinDistanceOfAtom(10, 3)
+
+    # you can iterate over something like the above such as:
+    atomsWithinDistance = p.atomsWithinDistanceOfAtom(10, 3)
+    i = 0
+    for x in atomsWithinDistance[0]:
+        print 'Atom {}{} is within {} of {}{}: {}'.format(x.name, x.id, 3,
+            p.molecule.atoms[10].name, 10, atomsWithinDistance[1][i])
+        i += 1
+
+    # or even make an amber mask:
+    print p.toAmberMask('atoms')
+
+    # output a description of 'p' as json
+    print p.toJSON()
+
+    # reduce a pdb:
+    p.reduce()
+
+    # ...which can be iterated over:
+    for atom in p.reduce():
+        print '{}{}'.format(atom.name, atom.id)
+
+    # the selection (or all atoms if no selection) can be written to a pdb file
+    p.writePDB()
+
+    # the selection can be removed using
+    p.removeSelection()
