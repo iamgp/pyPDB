@@ -2,7 +2,7 @@
 
 from molecule import *
 import os, sys
-import numpy, math, json
+import numpy
 import matplotlib.pyplot as plt
 
 class pyPDB(object):
