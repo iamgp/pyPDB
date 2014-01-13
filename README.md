@@ -1,5 +1,18 @@
 pyPDB
 =====
+
+**pyPDB** is a python class that represents a strutural PDB file (not related to the python PDB debugger). It enables swift utility functions that can be used to prepare PDB files for further analysis and retrieve information about it.
+
+Developed by Gareth Price (gareth.price@warwick.ac.uk). Please feel free to email or to use the issues pane at Github.
+
+Instructions for installation
+------
+
+Download the latest release or the bleeding edge version and extract the files. The bare minimum files that are required if you are using them in another python program are `molecule.py` and `pyPDB.py`.
+
+Examples
+------
+
 ```python
 from pyPDB import *
 
