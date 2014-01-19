@@ -144,6 +144,7 @@ class pyPDB(object):
         self.selectedAtoms = []
         self.reduced = []
         self._readFile()
+        self.verbose = False
 
     def _readFile(self):
         m = Molecule(self.filename)
@@ -442,9 +443,10 @@ class pyPDB(object):
 
     def reorderResidues(self):
         counter = 1
+        _log(self.verbose, 'Reordering Residues:', colour="red", bold=True)
         for i in self.molecule.residues:
             res = self.molecule.residues[i]
-            #print '{}-{} ----> {}'.format(res.name, res.id, counter)
+            _log(self.verbose, '{}-{} ----> {}'.format(res.name, res.id, counter))
             res.id = counter
             counter = counter + 1
         return self
@@ -471,6 +473,48 @@ def mergePDBs(pdbs, output):
 
     return output
 
+def _log(verbose=True, message="", colour=None, background=None, bold=False, underline=False, inverted=False, run=False):
+
+    if verbose:
+
+        colours = {
+            'black':    '90',
+            'red':      '91',
+            'green':    '92',
+            'yellow':   '93',
+            'blue':     '94',
+            'magenta':  '95',
+            'cyan':     '96',
+            'white':    '97'
+        }
+
+        backgrounds = {
+            'default':  '49',
+            'black':    '100',
+            'red':      '101',
+            'green':    '102',
+            'yellow':   '103',
+            'blue':     '104',
+            'magenta':  '105',
+            'cyan':     '106',
+            'white':    '107'
+        }
+
+        if bold:                   message = '\033[1m' + message + '\033[21m'
+        if underline:              message = '\033[4m' + message + '\033[24m'
+        if background is not None: message = '\033[' + backgrounds[background] + 'm' + message + '\033[49m'
+        if colour is not None:     message = '\033[' + colours[colour] + 'm' + message + '\033[0m'
+        if inverted:               message = '\033[7m' + message + '\033[27m'
+
+        if run:
+            print message,
+        else:
+            print message
+
+    return
+
+
+
 if __name__ == '__main__':
 
 # load pdb
@@ -480,10 +524,11 @@ if __name__ == '__main__':
     #p2 = pyPDB(downloadPDB('1P47', 'pdbs/1P47.pdb'))
 
 # we can merge two pdb files:
-    # p3 = PyPDB(mergePDBs(['pdbs/gly.pdb', 'pdbs/1P47.pdb'],'pdbs/combined.pdb')))
+    p3 = pyPDB('pdbs/combined.pdb')
+    p3.verbose = True
 
 # after merging, we probably need to reorder the residues:
-    #  p3.reorderResidues()
+    p3.reorderResidues()
 
 # and also describe the residues:
     # p3.describeResidues()

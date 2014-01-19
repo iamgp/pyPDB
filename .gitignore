@@ -3,3 +3,4 @@
 src/
 test.py
 pdbs/example.pdb
+pdbs/combined.pdb
