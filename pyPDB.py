@@ -2,37 +2,6 @@
 
 import os
 import sys
-import numpy
-import matplotlib.pyplot as plt
-
-
-def unZip(archive, uncompressed):
-    import gzip
-    f = gzip.open(archive, 'r')
-    g = open(uncompressed, 'w')
-    g.writelines(f.readlines())
-    f.close()
-    g.close()
-    os.remove(archive)
-
-
-def downloadPDB(pdbCode, output=""):
-    import urllib
-
-    pdb = "{pdbid}.pdb.gz".format(pdbid=pdbCode)
-    url = "http://www.rcsb.org/pdb/files/{pdb}".format(pdb=pdb)
-
-    urllib.urlretrieve(url, pdb)
-
-    if output == "":
-        output_path = "{pdbid}.pdb".format(pdbid=pdbCode)
-    else:
-        output_path = output
-
-    unZip(pdb, output_path)
-
-    return output_path
-
 
 class Atom(object):
 
@@ -193,10 +162,10 @@ class pyPDB(object):
                 chain_no = chain_no + 1
 
         if m.bond_total() == 0:
-            print 'Warning: No CONECT info, so no bond analysis.\n\n'
+            print 'Warning: No CONECT info, so no bond analysis.'
 
         if 'TER' not in f:
-            print 'Warning: No TER statement, so no chains are built.\n\n'
+            print 'Warning: No TER statement, so no chains are built.\n'
 
         self.molecule = m
 
@@ -233,6 +202,7 @@ class pyPDB(object):
         return bonds
 
     def distanceBetweenAtoms(self, atomid1, atomid2):
+        import numpy
         atom1 = self.molecule.atoms[atomid1]
         atom2 = self.molecule.atoms[atomid2]
 
@@ -285,6 +255,9 @@ class pyPDB(object):
         return dist_map
 
     def plotDistanceMap(self, save=False, directory='', close=False):
+        import numpy
+        import matplotlib.pyplot as plt
+
         m = self.distanceMap()
         matrix = numpy.matrix(m)
 
@@ -513,6 +486,32 @@ def _log(verbose=True, message="", colour=None, background=None, bold=False, und
 
     return
 
+def unZip(archive, uncompressed):
+    import gzip
+    f = gzip.open(archive, 'r')
+    g = open(uncompressed, 'w')
+    g.writelines(f.readlines())
+    f.close()
+    g.close()
+    os.remove(archive)
+    return True
+
+def downloadPDB(pdbCode, output=""):
+    import urllib
+
+    pdb = "{pdbid}.pdb.gz".format(pdbid=pdbCode)
+    url = "http://www.rcsb.org/pdb/files/{pdb}".format(pdb=pdb)
+
+    urllib.urlretrieve(url, pdb)
+
+    if output == "":
+        output_path = "{pdbid}.pdb".format(pdbid=pdbCode)
+    else:
+        output_path = output
+
+    unZip(pdb, output_path)
+
+    return output_path
 
 
 if __name__ == '__main__':
@@ -524,11 +523,11 @@ if __name__ == '__main__':
     #p2 = pyPDB(downloadPDB('1P47', 'pdbs/1P47.pdb'))
 
 # we can merge two pdb files:
-    p3 = pyPDB('pdbs/combined.pdb')
+    p3 = pyPDB('pdbs/multiple.pdbqt')
     p3.verbose = True
 
 # after merging, we probably need to reorder the residues:
-    p3.reorderResidues()
+#    p3.reorderResidues()
 
 # and also describe the residues:
     # p3.describeResidues()
