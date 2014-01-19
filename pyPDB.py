@@ -5,14 +5,16 @@ import sys
 import numpy
 import matplotlib.pyplot as plt
 
-def unZip(archive,uncompressed):
+
+def unZip(archive, uncompressed):
     import gzip
-    f = gzip.open(archive,'r')
-    g = open(uncompressed,'w')
+    f = gzip.open(archive, 'r')
+    g = open(uncompressed, 'w')
     g.writelines(f.readlines())
     f.close()
     g.close()
     os.remove(archive)
+
 
 def downloadPDB(pdbCode, output=""):
     import urllib
@@ -68,13 +70,14 @@ class Residue(object):
 
     """Residue Class"""
 
-    def __init__(self, id=-1, name="", atoms=None):
+    def __init__(self, id=-1, name="", atoms=None, chain=""):
         self.id = id
         self.name = name
         if atoms == None:
             self.atoms = []
         else:
             self.atoms = atoms
+        self.chain = chain
 
 
 class Chain(object):
@@ -165,8 +168,9 @@ class pyPDB(object):
                     r.id = atom.resSeq
                     r.name = atom.resName
                     r.atoms = [atom.id]
-                    m.residues[r.id] = r
                     chain_name = line[21:22]
+                    r.chain = chain_name
+                    m.residues[r.id] = r
                     temp_chain.append(r)
 
                 else:
@@ -188,10 +192,10 @@ class pyPDB(object):
                 chain_no = chain_no + 1
 
         if m.bond_total() == 0:
-            print 'Warning: No CONECT info, so no bond analysis.'
+            print 'Warning: No CONECT info, so no bond analysis.\n\n'
 
         if 'TER' not in f:
-            print 'Warning: No TER statement, so no chains are built.'
+            print 'Warning: No TER statement, so no chains are built.\n\n'
 
         self.molecule = m
 
@@ -374,7 +378,6 @@ class pyPDB(object):
         return self
 
     def writePDB(self):
-
         if not self.selectedAtoms:
             atomsToWrite = self.molecule.atoms
         else:
@@ -418,7 +421,6 @@ class pyPDB(object):
 
         return "%s%5i %-4s%c%3s %c%4i%c   %8.3f%8.3f%8.3f%s" % args
 
-
     def translateCoordinates(self, translateVector):
         if not self.selectedAtoms:
             atoms_list = self.molecule.atoms
@@ -431,24 +433,64 @@ class pyPDB(object):
             a = self.molecule.atoms[atom]
             a1 = numpy.array([a.x, a.y, a.z])
             a2 = numpy.array(translateVector)
-            s = numpy.add(a1,a2)
+            s = numpy.add(a1, a2)
             self.molecule.atoms[atom].x = s[0]
             self.molecule.atoms[atom].y = s[1]
             self.molecule.atoms[atom].z = s[2]
 
         return self
 
+    def reorderResidues(self):
+        counter = 1
+        for i in self.molecule.residues:
+            res = self.molecule.residues[i]
+            #print '{}-{} ----> {}'.format(res.name, res.id, counter)
+            res.id = counter
+            counter = counter + 1
+        return self
+
+
+    def describeResidues(self):
+        description = "{}\n----------------------------------\n".format(
+            os.path.basename(self.molecule.name))
+        for i in self.molecule.residues:
+            description += "Residue ID: {:3g} -- Residue Name: {} -- Chain ID: {}\n".format(
+                self.molecule.residues[i].id, self.molecule.residues[i].name, self.molecule.residues[i].chain)
+        return description
+
+
+def mergePDBs(pdbs, output):
+    # TODO: Deal with two residues having same ID but are on different chains
+    with open(output, 'w') as outfile:
+        for fname in pdbs:
+            with open(fname) as infile:
+                for line in infile:
+                    if line[0:4] == 'ATOM':
+                        outfile.write(line)
+            outfile.write("TER\n")
+
+    return output
+
 if __name__ == '__main__':
 
 # load pdb
-    p = pyPDB('pdbs/1P47.pdb')
+    #p = pyPDB('pdbs/gly.pdb')
 
 # if you need to download the pdb, you can load it straight away
-    p2 = pyPDB(downloadPDB('1P47', 'pdbs/1P47.pdb'))
+    #p2 = pyPDB(downloadPDB('1P47', 'pdbs/1P47.pdb'))
+
+# we can merge two pdb files:
+    # p3 = PyPDB(mergePDBs(['pdbs/gly.pdb', 'pdbs/1P47.pdb'],'pdbs/combined.pdb')))
+
+# after merging, we probably need to reorder the residues:
+    #  p3.reorderResidues()
+
+# and also describe the residues:
+    # p3.describeResidues()
 
 # translate the coordinates (or selection)
-#p.translateCoordinates([10,5,1])
-#for atom in p.molecule.atoms:
+# p.translateCoordinates([10,5,1])
+# for atom in p.molecule.atoms:
 #    a = p.molecule.atoms[atom]
 #    print "[{0:g}, {1:g}, {2:g}]".format(a.x, a.y, a.z)
 

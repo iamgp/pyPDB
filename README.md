@@ -20,7 +20,17 @@ from pyPDB import *
 p = pyPDB('pdbs/gly.pdb')
 
 # if you need to download the pdb, you can load it straight away
-p = pyPDB(downloadPDB('1P47', 'pdbs/1P47.pdb'))
+p2 = pyPDB(downloadPDB('1P47', 'pdbs/1P47.pdb'))
+
+# we can merge two pdb files:
+p3 = PyPDB(mergePDBs(['pdbs/gly.pdb', 'pdbs/1P47.pdb'],'pdbs/combined.pdb')))
+
+# after merging, we probably need to reorder the residues:
+p3.reorderResidues()
+
+# and also describe the residues:
+p3.describeResidues()
+
 
 # select one atom
 p.selectAtom(4)
