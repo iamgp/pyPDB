@@ -5,6 +5,33 @@ import sys
 import numpy
 import matplotlib.pyplot as plt
 
+def unZip(archive,uncompressed):
+    import gzip
+    f = gzip.open(archive,'r')
+    g = open(uncompressed,'w')
+    g.writelines(f.readlines())
+    f.close()
+    g.close()
+    os.remove(archive)
+
+def downloadPDB(pdbCode, output=""):
+    import urllib
+
+    pdb = "{pdbid}.pdb.gz".format(pdbid=pdbCode)
+    url = "http://www.rcsb.org/pdb/files/{pdb}".format(pdb=pdb)
+
+    urllib.urlretrieve(url, pdb)
+
+    if output == "":
+        output_path = "{pdbid}.pdb".format(pdbid=pdbCode)
+    else:
+        output_path = output
+
+    unZip(pdb, output_path)
+
+    return output_path
+
+
 class Atom(object):
 
     """Atom Class"""
@@ -153,7 +180,7 @@ class pyPDB(object):
 
             if 'TER' in line:
                 c = Chain()
-                c.name = chain_name
+                c.name = line[21:22]
                 c.residues = temp_chain
                 c.id = chain_no
                 m.chains.append(c)
@@ -414,7 +441,10 @@ class pyPDB(object):
 if __name__ == '__main__':
 
 # load pdb
-    p = pyPDB('pdbs/gly.pdb')
+    p = pyPDB('pdbs/1P47.pdb')
+
+# if you need to download the pdb, you can load it straight away
+    p2 = pyPDB(downloadPDB('1P47', 'pdbs/1P47.pdb'))
 
 # translate the coordinates (or selection)
 #p.translateCoordinates([10,5,1])

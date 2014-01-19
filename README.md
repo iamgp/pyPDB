@@ -19,6 +19,9 @@ from pyPDB import *
 # load pdb
 p = pyPDB('pdbs/gly.pdb')
 
+# if you need to download the pdb, you can load it straight away
+p = pyPDB(downloadPDB('1P47', 'pdbs/1P47.pdb'))
+
 # select one atom
 p.selectAtom(4)
 
