@@ -31,7 +31,6 @@ p3.reorderResidues()
 # and also describe the residues:
 p3.describeResidues()
 
-
 # select one atom
 p.selectAtom(4)
 
